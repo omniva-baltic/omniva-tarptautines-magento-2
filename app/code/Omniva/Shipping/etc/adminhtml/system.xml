@@ -1,0 +1,205 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="carriers">
+            <group id="omniva_global" translate="label" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Omniva Global</label>
+                <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Enabled for Checkout</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Title</label>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="production_webservices_url" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                     <label>Gateway URL</label>
+                     <validate>required-entry</validate>
+                </field>
+                <field id="secret" translate="label" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                     <label>Secret</label>
+                     <validate>required-entry</validate>
+                 </field>
+                <group id="omniva_company_group" translate="label" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="1">
+                    <label>Company contact settings</label>
+                    <field id="cod_company" translate="label" type="text" sortOrder="91" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Company name</label>
+                        <validate>required-entry</validate>
+                    </field>
+                    <field id="cod_bank_account" translate="label" type="text" sortOrder="92" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Bank account number</label>
+                    </field>
+                    <field id="company_address" translate="label" type="text" sortOrder="93" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Company street address</label>
+                        <validate>required-entry</validate>
+                    </field>
+                    <field id="company_city" translate="label" type="text" sortOrder="94" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Company city</label>
+                        <validate>required-entry</validate>
+                    </field>
+                    <field id="company_postcode" translate="label" type="text" sortOrder="95" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Company postcode</label>
+                        <validate>required-entry</validate>
+                    </field>
+                    <field id="company_countrycode" translate="label" type="text" sortOrder="96" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Company country code</label>
+                        <validate>required-entry</validate>
+                    </field>
+                    <field id="company_phone" translate="label" type="text" sortOrder="97" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Company phone</label>
+                        <validate>required-entry</validate>
+                    </field>
+                </group>
+                
+                <group id="omniva_methods_group" translate="label" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="1">
+                    <label>Shipping method settings</label>
+                    <field id="terminal_active" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
+                        <label>Enable terminal</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="terminal_title" translate="label" type="text" sortOrder="101" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="0">
+                        <label>Terminal title</label>
+                        <depends>
+                            <field id = "terminal_active">1</field>
+                        </depends>
+                    </field>
+                    <field id="terminal_max_weight" translate="label" type="text" sortOrder="102" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Max cart weight (kg) for terminal</label>
+                        <comment>Maximum allowed all cart products weight for parcel terminals.</comment>
+                        <validate>validate-number validate-zero-or-greater</validate>
+                        <depends>
+                            <field id = "terminal_active">1</field>
+                        </depends>
+                    </field>
+                    <field id="terminal_map" translate="label" type="select" sortOrder="103" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
+                        <label>Show map of terminals</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <depends>
+                            <field id = "terminal_active">1</field>
+                        </depends>
+                    </field>
+                    <field id="terminal_preselect" translate="label" type="select" sortOrder="103" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
+                        <label>Automatic terminal selection</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <depends>
+                            <field id = "terminal_active">1</field>
+                        </depends>
+                    </field>
+                    <field id="terminal_distance" translate="label" type="text" sortOrder="104" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Max terminal distance from receiver, km</label>
+                        <validate>validate-number validate-zero-or-greater</validate>
+                        <depends>
+                            <field id = "terminal_active">1</field>
+                        </depends>
+                    </field>
+                    
+                    <field id="courier_active" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
+                        <label>Enable courier</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="courier_title" translate="label" type="text" sortOrder="111" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="0">
+                        <label>Courier title</label>
+                        <depends>
+                            <field id = "courier_active">1</field>
+                        </depends>
+                    </field>
+                    <field id="courier_max_weight" translate="label" type="text" sortOrder="112" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Max cart weight (kg) for courier</label>
+                        <comment>Maximum allowed all cart products weight for courier.</comment>
+                        <validate>validate-number validate-zero-or-greater</validate>
+                        <depends>
+                            <field id = "courier_active">1</field>
+                        </depends>
+                    </field>
+                    <field id="services_order" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
+                        <label>Services order</label>
+                        <source_model>Omniva\Shipping\Model\Source\ServicesOrder</source_model>
+                    </field>
+                    <field id="services_limit" translate="label" type="text" sortOrder="121" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Services limit</label>
+                        <validate>required-entry validate-number validate-zero-or-greater</validate>
+                    </field>
+                    <field id="services" translate="label" type="multiselect" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
+                        <label>Services</label>
+                        <source_model>Omniva\Shipping\Model\Source\Services</source_model>
+                        <comment>Select services to enable them. If empty, enter API secret</comment>
+                    </field>
+                </group>
+                
+                <group id="omniva_price_group" translate="label" sortOrder="205" showInDefault="1" showInWebsite="0" showInStore="1">
+                    <label>Price settings</label>
+                    <field id="price_type" translate="label" type="select" sortOrder="205" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
+                        <label>Price type</label>
+                        <source_model>Omniva\Shipping\Model\Source\PriceType</source_model>
+                        <comment>Select price type for services</comment>
+                    </field>
+                    <field id="price_value" translate="label" type="text" sortOrder="206" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Price value</label>
+                        <validate>required-entry validate-number validate-zero-or-greater</validate>
+                    </field>
+                    <field id="free_shipping_amount" translate="label" type="text" sortOrder="207" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Free shipping cart amount</label>
+                        <comment>Enter 0 to disable</comment>
+                        <validate>required-entry validate-number validate-zero-or-greater</validate>
+                    </field>
+                </group>
+                
+                <group id="omniva_product_group" translate="label" sortOrder="250" showInDefault="1" showInWebsite="0" showInStore="1">
+                    <label>Product settings</label>
+                    <field id="product_weight" translate="label" type="text" sortOrder="206" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Default product weight (kg)</label>
+                        <validate>required-entry validate-number validate-zero-or-greater</validate>
+                    </field>
+                    <field id="product_width" translate="label" type="text" sortOrder="206" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Default product width (cm)</label>
+                        <validate>required-entry validate-number validate-zero-or-greater</validate>
+                    </field>
+                    <field id="product_height" translate="label" type="text" sortOrder="206" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Default product height (cm)</label>
+                        <validate>required-entry validate-number validate-zero-or-greater</validate>
+                    </field>
+                    <field id="product_length" translate="label" type="text" sortOrder="206" showInDefault="1" showInWebsite="1" showInStore="0" >
+                        <label>Default product length (cm)</label>
+                        <validate>required-entry validate-number validate-zero-or-greater</validate>
+                    </field>
+                    <field id="product_categories_disable" translate="label" type="multiselect" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
+                        <label>Disable for specific categories</label>
+                        <source_model>Omniva\Shipping\Model\Source\Categories</source_model>
+                        <comment>Select categories you want to disable the Omniva method</comment>
+                    </field>
+                </group>
+                
+                <group id="omniva_other_group" translate="label" sortOrder="300" showInDefault="1" showInWebsite="0" showInStore="1">
+                    <label>Other settings</label>
+                    <field id="specificerrmsg" translate="label" type="textarea" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                        <label>Displayed Error Message</label>
+                    </field>
+                    <field id="sallowspecific" translate="label" type="select" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                        <label>Ship to Applicable Countries</label>
+                        <frontend_class>shipping-applicable-country</frontend_class>
+                        <source_model>Magento\Shipping\Model\Config\Source\Allspecificcountries</source_model>
+                    </field>
+                    <field id="specificcountry" translate="label" type="multiselect" sortOrder="260" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Ship to Specific Countries</label>
+                        <source_model>Omniva\Shipping\Model\Source\Country</source_model>
+                        <can_be_empty>1</can_be_empty>
+                    </field>
+                    <field id="showmethod" translate="label" type="select" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Show Method if Not Applicable</label>
+                        <frontend_class>shipping-skip-hide</frontend_class>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="sort_order" translate="label" type="text" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Sort Order</label>
+                    </field>
+                </group>
+            </group>
+        </section>
+    </system>
+</config>

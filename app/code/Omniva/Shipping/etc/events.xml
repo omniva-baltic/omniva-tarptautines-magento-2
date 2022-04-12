@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_model_service_quote_submit_before">
+        <observer name="copy_omniva_int_terminal" instance="Omniva\Shipping\Model\Observer\SaveOmnivaIntTerminalToOrderObserver" />
+    </event>
+    <event name="adminhtml_sales_order_create_process_data_before">
+        <observer name="save_omniva_int_terminal" instance="Omniva\Shipping\Model\Observer\SaveOmnivaIntTerminalToNewOrderObserver" />
+    </event>
+    <event name="checkout_submit_all_after">
+        <observer name="omniva_order_place_after" instance="Omniva\Shipping\Model\Observer\OrderPlaced" />
+    </event>
+</config>

@@ -1,0 +1,85 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+?>
+<?php /** @var $block \Magento\Sales\Block\Adminhtml\Order\View\Tab\Info */ ?>
+<?php $_order = $block->getOrder() ?>
+<?php $_orderServices = $_order->getOmnivaServices(); ?>
+<?php
+    if ($_orderServices == null){
+        $_orderServices = array('services'=> array());
+    } else {
+        $_orderServices = json_decode($_orderServices, true);
+    }
+?>
+<?php $_isOmniva = $block->isOmnivaMethod($_order) ?>
+<div id="order-messages">
+    <?= $block->getChildHtml('order_messages') ?>
+</div>
+
+
+
+<section class="admin__page-section omniva-tab-content">
+    <?php if ($_isOmniva): ?>
+    
+    <?php $omniva_order = $this->getOmnivaOrder(); ?>
+    <div class="admin__page-section-title">
+        <span class="title"><?= /* @escapeNotVerified */ __('Omniva order') ?></span>
+    </div>
+    <div class="admin__field">
+        <div class="order-omniva-services-options" id = "omniva_int_block" style = "max-width: 400px;">
+            <?php foreach ($this->getServices() as $service): ?>
+            <div class="admin__field admin__field-option">
+                <input name="omniva_services[]" type="checkbox" id="service-<?php echo $service['value']; ?>" class="admin__control-checkbox" value="<?php echo $service['value']; ?>" <?php echo (isset($_orderServices['services']) && in_array($service['value'],$_orderServices['services'])?'checked="checked"':'');?>>
+                <label class="admin__field-label" for="service-<?php echo $service['value']; ?>"><?php echo $service['title']; ?></label>
+            </div>
+            <?php endforeach; ?>
+            <div class="admin__field">
+                <label for="omniva_eori" class="admin__field-label">EORI number</label>
+                <div class="admin__field-control">
+                    <input type = "text" name="omniva_eori" id="omniva_eori" class="admin__control-textarea" value = "<?= $omniva_order ? $omniva_order->getEori():'';?>"/>
+                </div>
+            </div>
+            <input type="hidden" name="order_id" value="<?= /* @escapeNotVerified */ $_order->getId() ?>"/>
+        </div>
+        <br/>
+        <div class="order-omniva-services-actions">
+            <button id="omniva-int-btn" title="Save" type="button" class="action-default scalable action-save action-secondary" onclick="submitAndReloadArea($('omniva_int_block').parentNode, '<?php echo $this->getUrl('omniva/order/saveservicesajax'); ?>')" data-ui-id="widget-button-0">
+                <span><?php echo __("Save"); ?></span>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+    require(['prototype'], function(){
+
+    saveOmnivaInt = function() {
+        submitAndReloadArea($('omniva_int_block').parentNode, '<?= /* @escapeNotVerified */ $block->getSubmitUrl() ?>')
+    }
+
+    if ($('#omniva-int-btn')) {
+        $('#omniva-int-btn').observe('click', saveOmnivaInt);
+    }
+
+    });
+    </script>
+    
+    
+    <?php else: ?>
+    
+    <div class="admin__page-section-title">
+        <span class="title"><?= /* @escapeNotVerified */ __('Not Omniva service') ?></span>
+    </div>
+    
+    <?php endif; ?>
+</section>
+
+
+
+
+

@@ -1,4 +1,4 @@
-# Omniva module for Magento 2.1 - 2.4 versions
+# Omniva Tarptautines module for Magento 2.1 - 2.4 versions
 
 ## Before installing
 
@@ -14,7 +14,7 @@ Copy `app` folder into magento root folder. Continue with terminal commands.
 
 
 ```
-composer require mijora/omniva-api
+composer require omniva/api-lib
 
 php bin/magento setup:upgrade
 

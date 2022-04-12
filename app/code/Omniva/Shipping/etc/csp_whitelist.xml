@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
+    <policies>
+        <policy id="script-src">
+            <values>
+                <value id="omniva-global-script-unpg" type="host">https://unpkg.com</value>
+            </values>
+        </policy>
+        <policy id="style-src">
+            <values>
+                <value id="omniva-global-style-unpg" type="host">https://unpkg.com</value>
+            </values>
+        </policy>
+        <policy id="img-src">
+            <values>
+                <value id="omniva-global-img-omniva" type="host">*.omniva.lt</value>
+                <value id="omniva-global-img-mijora" type="host">*.mijora.lt</value>
+                <value id="omniva-global-img-openstreet" type="host">*.openstreetmap.org</value>
+            </values>
+        </policy>
+        <policy id="connect-src">
+            <values>
+                <value id="omniva-global-connect-omniva" type="host">*.omniva.lt</value>
+                <value id="omniva-global-connect-mijora" type="host">*.mijora.lt</value>
+            </values>
+        </policy>
+        <policy id="default-src">
+            <values>
+                <value id="omniva-global-terminals-mijora" type="host">*.mijora.lt</value>
+            </values>
+        </policy>
+    </policies>
+</csp_whitelist>
