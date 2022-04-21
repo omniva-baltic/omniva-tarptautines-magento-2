@@ -5,6 +5,7 @@ namespace Omniva\Shipping\Block;
 use Omniva\Shipping\Model\Carrier;
 use Omniva\Shipping\Model\LabelHistoryFactory;
 use Omniva\Shipping\Model\OmnivaOrderFactory;
+use Magento\Sales\Model\OrderFactory;
 
 class Manifest extends \Magento\Framework\View\Element\Template
 {
@@ -14,6 +15,7 @@ class Manifest extends \Magento\Framework\View\Element\Template
     protected $omnivaCarrier;
     protected $labelhistoryFactory;
     protected $omnivaOrderFactory;
+    protected $orderFactory;
 
     public function __construct(
             \Magento\Framework\View\Element\Template\Context $context,
@@ -21,7 +23,8 @@ class Manifest extends \Magento\Framework\View\Element\Template
             \Magento\Framework\App\ProductMetadataInterface $productMetadata,
             Carrier $omnivaCarrier,
             LabelHistoryFactory $labelhistoryFactory,
-            OmnivaOrderFactory $omnivaOrderFactory
+            OmnivaOrderFactory $omnivaOrderFactory,
+            OrderFactory $orderFactory
     ) {
         parent::__construct($context);
         $this->productMetadata = $productMetadata;
@@ -29,6 +32,7 @@ class Manifest extends \Magento\Framework\View\Element\Template
         $this->_orderCollectionFactory = $orderCollectionFactory;
         $this->labelhistoryFactory = $labelhistoryFactory;
         $this->omnivaOrderFactory = $omnivaOrderFactory;
+        $this->orderFactory = $orderFactory;
     }
 
     public function getMagentoVersion() {
@@ -78,6 +82,16 @@ class Manifest extends \Magento\Framework\View\Element\Template
         $terminal_id = $shippingAddress->getOmnivaIntTerminal();
         $parcel_terminal = $this->omnivaCarrier->getTerminalAddress($terminal_id);
         return $parcel_terminal;
+    }
+
+    public function getOrderIncrement($omniva_order) {
+        $orderModel = $this->orderFactory->create();
+        $order = $orderModel->load($omniva_order->getOrderId());
+        return $order->getIncrementId();
+    }
+
+    public function getOrderUrl($orderId) {
+        return $this->getUrl('sales/order/view', ['order_id' => $orderId]);
     }
     
     public function getOrderHistory($order) {

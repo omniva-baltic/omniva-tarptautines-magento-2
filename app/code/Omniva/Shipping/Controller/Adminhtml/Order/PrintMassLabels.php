@@ -46,13 +46,8 @@ class PrintMassLabels extends \Magento\Sales\Controller\Adminhtml\Order\Abstract
     }
 
     public function isOmnivaMethod($order) {
-        $_omnivaMethods = array(
-            'omniva_PARCEL_TERMINAL',
-            'omniva_COURIER',
-            'omniva_COURIER_PLUS'
-        );
         $order_shipping_method = $order->getData('shipping_method');
-        return in_array($order_shipping_method, $_omnivaMethods);
+        return stripos($order_shipping_method, 'omnivaglobal_') !== false;
     }
 
     private function _collectPostData($post_key = null) {
@@ -101,8 +96,10 @@ class PrintMassLabels extends \Magento\Sales\Controller\Adminhtml\Order\Abstract
     public function massAction(AbstractCollection $collection) {
         $order_ids = $this->_collectPostData('order_ids');
         $pack_data = $this->_fillDataBase($collection); //Send data to server and get packs number's
+        // exit;
         try {
             if (!count($pack_data) || $pack_data === false) { //If nothing to print
+                $this->messageManager->addError(__('No orders selected'));
                 $this->_redirect($this->_redirect->getRefererUrl());
                 return;
             } else { //If found Order who can get Label so Do it
@@ -140,7 +137,7 @@ class PrintMassLabels extends \Magento\Sales\Controller\Adminhtml\Order\Abstract
                     $shipment = $_shipment; //get last shipment            
                 }
             }
-
+            
             $label = $this->_createShippingLabel($shipment, $order);
             if (!$label) {
                 $this->messageManager->addWarning('Warning: Shipment label not generated for order ' . $order->getData('increment_id'));
@@ -217,7 +214,7 @@ class PrintMassLabels extends \Magento\Sales\Controller\Adminhtml\Order\Abstract
         try {
             $response = $labelFactory->requestToShipment($shipment);
         } catch (\Exception $e) {
-            $this->messageManager->addWarning('Warning: Order ' . $shipment->getOrder()->getData('increment_id') . ': ' . $e->getMessage());
+            $this->messageManager->addWarning('Warning: Order ' . $shipment->getOrder()->getData('increment_id') . ': ' . $e->getMessage() . ' ' . $e->getFile());
             return false;
         }
         if ($response->hasErrors()) {
@@ -236,9 +233,11 @@ class PrintMassLabels extends \Magento\Sales\Controller\Adminhtml\Order\Abstract
                 $trackingNumbers[] = $inf['tracking_number'];
             }
         }
-        $outputPdf = $this->_combineLabelsPdfZend($labelsContent);
-        $shipment->setShippingLabel($outputPdf->render());
-        $shipment->save();
+        if (!empty($labelsContent)) {
+            $outputPdf = $this->_combineLabelsPdfZend($labelsContent);
+            $shipment->setShippingLabel($outputPdf->render());
+            $shipment->save();
+        }
         if ($trackingNumbers) {
             foreach ($shipment->getAllTracks() as $track) {
                 $track->delete();
@@ -247,7 +246,7 @@ class PrintMassLabels extends \Magento\Sales\Controller\Adminhtml\Order\Abstract
                 $track = $objectManager->create('Magento\Sales\Model\Order\Shipment\Track')->setShipment($shipment)->setTitle('Omniva')->setNumber($trackingNumber)->setCarrierCode('omniva')->setOrderId($shipment->getData('order_id'))->save();
             }
         } else {
-            $text = 'Warning: Order ' . $shipment->getOrder()->getData('increment_id') . ' has not received tracking numbers.';
+            $text = 'Warning: Order ' . $shipment->getOrder()->getData('increment_id') . ' has not received tracking information yet.';
             $this->messageManager->addWarning($text);
         }
         if ($shipment->getShippingLabel()) {

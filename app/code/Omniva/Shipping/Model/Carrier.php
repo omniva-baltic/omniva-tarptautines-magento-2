@@ -21,6 +21,7 @@ use OmnivaApi\Sender;
 use OmnivaApi\Receiver;
 use OmnivaApi\Parcel;
 use OmnivaApi\Item;
+use OmnivaApi\Order as ApiOrder;
 
 use Omniva\Shipping\Model\LabelHistoryFactory;
 use Omniva\Shipping\Model\TerminalFactory;
@@ -41,7 +42,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
      *
      * @var string
      */
-    const CODE = 'omniva_global';
+    const CODE = 'omnivaglobal';
 
 
     /**
@@ -81,12 +82,6 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
      * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory
      */
     protected $_productCollectionFactory;
-
-    /**
-     * Version of tracking service
-     * @var int
-     */
-    private static $trackServiceVersion = 10;
 
     /**
      * @var \Magento\Framework\Xml\Parser
@@ -238,7 +233,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
                 }
                 $method = $this->_rateMethodFactory->create();
 
-                $method->setCarrier('omniva_global');
+                $method->setCarrier('omnivaglobal');
                 $method->setCarrierTitle('Omniva');
 
                 $method->setMethod($offer->service_code);
@@ -262,7 +257,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
                 }
                 $method = $this->_rateMethodFactory->create();
 
-                $method->setCarrier('omniva_global');
+                $method->setCarrier('omnivaglobal');
                 $method->setCarrierTitle('Omniva');
                 $offer->parcel_terminal_type = 'w2s_inpost';
                 $method->setMethod($offer->service_code . '_' . $offer->parcel_terminal_type . '_terminal');
@@ -347,18 +342,34 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
     }
     
     private function get_parcels($request) {
-        $items = $request->getAllItems();
-        foreach ($items as $item) {
-            $product = $item->getProduct();
-            $parcel = new Parcel();
-            $parcel->setUnitWeight($product->getData('weight') ?? $this->getConfigData('omniva_product_group/product_weight'));
-            $parcel->setHeight($product->getData('ts_dimensions_height') ?? $this->getConfigData('omniva_product_group/product_height'));
-            $parcel->setWidth($product->getData('ts_dimensions_width') ?? $this->getConfigData('omniva_product_group/product_width'));
-            $parcel->setLength($product->getData('ts_dimensions_length') ?? $this->getConfigData('omniva_product_group/product_length'));
-            $parcel->setAmount($item->getQty());
-            $parcels[] = $parcel->generateParcel();
-        }
+        $parcels = [];
+            $items = $request->getAllItems();
+            foreach ($items as $item) {
+                $product = $item->getProduct();
+                $parcel = new Parcel();
+                $parcel->setUnitWeight($product->getData('weight') ?? $this->getConfigData('omniva_product_group/product_weight'));
+                $parcel->setHeight($product->getData('ts_dimensions_height') ?? $this->getConfigData('omniva_product_group/product_height'));
+                $parcel->setWidth($product->getData('ts_dimensions_width') ?? $this->getConfigData('omniva_product_group/product_width'));
+                $parcel->setLength($product->getData('ts_dimensions_length') ?? $this->getConfigData('omniva_product_group/product_length'));
+                $parcel->setAmount((int)($item->getQty() ?? $item->getQtyOrdered()));
+                $parcels[] = $parcel->generateParcel();
+            }
         return $parcels;
+    }
+    
+    private function get_items($request) {
+        $items = [];
+        $order_items = $request->getAllItems();
+        foreach ($order_items as $id => $data) {
+            $product = $data->getProduct();
+            $item = new Item();
+            $item->setItemAmount((int) ($data->getQty() ?? $data->getQtyOrdered()));
+            $item->setDescription($product->getName());
+            $item->setItemPrice($product->getFinalPrice() ?? $product->getPrice());
+            $item->setCountryId($this->get_country_id($this->getConfigData('omniva_company_group/company_countrycode')));
+            $items[] = $item->generateItem();
+        }
+        return $items;
     }
     
     private function is_offer_terminal($offer) {
@@ -388,20 +399,32 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         return $sender;
     }
     
-    public function get_receiver($request) {
+    public function get_receiver($request, $cart = true) {
         $send_off = 'courier';
-        $quote = $this->_checkoutSession->getQuote(); 
-        $address = $quote->getShippingAddress();
-        //create from object on order
-        $receiver = new Receiver($send_off);
-        $receiver->setCompanyName($address->getCompany() ?? "");
-        $receiver->setContactName($address->getData("firstname") . ' ' . $address->getData("lastname"));
-        $receiver->setStreetName($request->getDestStreet());
-        $receiver->setZipcode($request->getDestPostcode());
-        $receiver->setCity($request->getDestCity());
-        $receiver->setCountryId($this->get_country_id($address->getCountryId()));
-        $receiver->setPhoneNumber((string)$address->getTelephone());
-        return $receiver;
+        if ($cart) {
+            $quote = $this->_checkoutSession->getQuote(); 
+            $address = $quote->getShippingAddress();
+            //create from object on order
+            $receiver = new Receiver($send_off);
+            $receiver->setCompanyName($address->getCompany() ?? "");
+            $receiver->setContactName($address->getData("firstname") . ' ' . $address->getData("lastname"));
+            $receiver->setStreetName($request->getDestStreet());
+            $receiver->setZipcode($request->getDestPostcode());
+            $receiver->setCity($request->getDestCity());
+            $receiver->setCountryId($this->get_country_id($address->getCountryId()));
+            $receiver->setPhoneNumber((string)$address->getTelephone());
+            return $receiver;
+        } else {
+            $receiver = new Receiver($send_off);
+            $receiver->setCompanyName($request->getRecipientContactCompanyName() ?? "");
+            $receiver->setContactName($request->getRecipientContactPersonName());
+            $receiver->setStreetName($request->getRecipientAddressStreet1());
+            $receiver->setZipcode((string)$request->getRecipientAddressPostalCode());
+            $receiver->setCity($request->getRecipientAddressCity());
+            $receiver->setCountryId($this->get_country_id($request->getRecipientAddressCountryCode()));
+            $receiver->setPhoneNumber((string)$request->getRecipientContactPhoneNumber());
+            return $receiver;
+        }
     }
     
     private function get_country_id($country_code) {
@@ -685,157 +708,63 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         $result = new \Magento\Framework\DataObject();
 
         try {
+            $services = [];
             $order = $request->getOrderShipment()->getOrder();
-            $username = $this->getConfigData('account');
-            $password = $this->getConfigData('password');
-
-            $name = $this->getConfigData('cod_company');
-            $phone = $this->getConfigData('company_phone');
-            $street = $this->getConfigData('company_address');
-            $postcode = $this->getConfigData('company_postcode');
-            $city = $this->getConfigData('company_city');
-            $country = $this->getConfigData('company_countrycode');
-            $bank_account = $this->getConfigData('cod_bank_account');
-
-            $payment_method = $order->getPayment()->getMethodInstance()->getCode();
-            $is_cod = $payment_method == 'msp_cashondelivery';
-
-            $send_method_name = trim($request->getShippingMethod());
-            $pickup_method = $this->getConfigData('pickup');
-            
-            $send_method = 'c';
-            if (strtolower($send_method_name) == 'parcel_terminal') {
-                $send_method = 'pt';
-            } else if (strtolower($send_method_name) == 'courier_plus') {
-                $send_method = 'cp';
+            $omniva_order = $this->getOmnivaOrder($order);
+            //check if we have already generated 
+            if ($omniva_order->getShipmentId()) {
+                //try to delete old shipment
+                $response = $this->api->cancel_order($omniva_order->getShipmentId());
+                $omniva_order->setShipmentId(null);
+                $omniva_order->setCartId(null);
+                $omniva_order->save();
             }
+            $cod_amount = 0;
+            $service_code = $omniva_order->getServiceCode();
+            $sender = $this->get_sender();
+            $receiver = $this->get_receiver($request, false);
             
-            $service = $this->shipping_helper->getShippingService($this, $send_method, $order);
-            
-            //in case cannot get correct service
-            if ($service === false || is_array($service)) {
-                switch ($pickup_method . ' ' . $send_method_name) {
-                    case 'COURIER PARCEL_TERMINAL':
-                        $service = "PU";
-                        break;
-                    case 'COURIER COURIER':
-                        $service = "QH";
-                        break;
-                    case 'PARCEL_TERMINAL COURIER':
-                        $service = "PK";
-                        break;
-                    case 'PARCEL_TERMINAL PARCEL_TERMINAL':
-                        $service = "PA";
-                        break;
-                    default:
-                        $service = "";
-                        break;
-                }
+            $shippingAddress = $order->getShippingAddress();
+            $terminal = $this->api->get_terminal($shippingAddress->getOmnivaIntTerminal());
+            if ($terminal !== null) {
+                $receiver->setShippingType('terminal');
+                $receiver->setZipcode($terminal->getZip());
             }
-
-
-
-            $shipment = new Shipment();
-            /*
-              $shipment
-              ->setComment('Test comment')
-              ->setShowReturnCodeEmail(true);
-             */
-            $shipmentHeader = new ShipmentHeader();
-            $shipmentHeader
-                    ->setSenderCd($username)
-                    ->setFileId(date('Ymdhis'));
-            $shipment->setShipmentHeader($shipmentHeader);
-
-            $package = new Package();
-            $package
-                    ->setId($order->getId())
-                    ->setService($service);
-            
-            $additionalServices = [];
-            if ($service == "PA" || $service == "PU") {
-                $additionalServices[] = (new AdditionalService())->setServiceCode('ST');
-                if ($is_cod) {
-                    $additionalServices[] = (new AdditionalService())->setServiceCode('BP');
-                }
+            if ($omniva_order->getEori()) {
+                $receiver->setEori($omniva_order->getEori());
             }
-            
-            $_orderServices = json_decode($order->getOmnivaServices(), true);
-            if (isset($_orderServices['services']) && is_array($_orderServices['services'])) {
-                foreach ($_orderServices['services'] as $_service) {
-                    $additionalServices[] = (new AdditionalService())->setServiceCode($_service);
-                }
-            }
-            
-            $package->setAdditionalServices($additionalServices);
-
-            $measures = new Measures();
-            $measures
-                    ->setWeight($request->getPackageWeight());
-            /*
-              ->setVolume(9)
-              ->setHeight(2)
-              ->setWidth(3); */
-            $package->setMeasures($measures);
 
             //set COD
+            $payment_method = $order->getPayment()->getMethodInstance()->getCode();
+            $is_cod = $payment_method == 'msp_cashondelivery';
             if ($is_cod) {
-                $cod = new Cod();
-                $cod
-                        ->setAmount(round($request->getOrderShipment()->getOrder()->getGrandTotal(), 2))
-                        ->setBankAccount($bank_account)
-                        ->setReceiverName($name)
-                        ->setReferenceNumber($this->getReferenceNumber($order->getId()));
-                $package->setCod($cod);
+                $services[] = 'cod';
+                $cod_amount = round($order->getGrandTotal(), 2);
             }
-            // Receiver contact data
-            $receiverContact = new Contact();
-            $address = new Address();
-            $address
-                    ->setCountry($request->getRecipientAddressCountryCode())
-                    ->setPostcode($request->getRecipientAddressPostalCode())
-                    ->setDeliverypoint($request->getRecipientAddressCity())
-                    ->setStreet($request->getRecipientAddressStreet1());
-            if ($send_method_name === 'PARCEL_TERMINAL') {
-                $address->setOffloadPostcode($order->getShippingAddress()->getOmnivaIntTerminal());
-            }
+                
+            $api_order = new ApiOrder();
+            $api_order->setSender($sender);
+            $api_order->setReceiver($receiver);
+            $api_order->setServiceCode($service_code);
+            $api_order->setParcels($this->get_parcels($order));
+            $api_order->setItems($this->get_items($order));
+            $api_order->setReference($order->getIncrementId());
+            $api_order->setAdditionalServices($services, $cod_amount);
+            $response = $this->api->create_order($api_order);
 
-            $receiverContact
-                    ->setAddress($address)
-                    ->setMobile($request->getRecipientContactPhoneNumber())
-                    ->setPersonName($request->getRecipientContactPersonName());
-            $package->setReceiverContact($receiverContact);
+            
+            
 
-            // Sender contact data
-            $sender_address = new Address();
-            $sender_address
-                    ->setCountry($country)
-                    ->setPostcode($postcode)
-                    ->setDeliverypoint($city)
-                    ->setStreet($street);
-            $senderContact = new Contact();
-            $senderContact
-                    ->setAddress($sender_address)
-                    ->setMobile($phone)
-                    ->setPersonName($name);
-            $package->setSenderContact($senderContact);
+            if ($response->shipment_id || $response->cart_id) {
+                $omniva_order->setShipmentId($response->shipment_id);
+                $omniva_order->setCartId($response->cart_id);
+                $omniva_order->save();
 
-            // Simulate multi-package request.
-            $shipment->setPackages([$package]);
-
-            //set auth data
-            $shipment->setAuth($username, $password);
-
-            $shipment_result = $shipment->registerShipment();
-            if (isset($shipment_result['barcodes'])) {
-                foreach ($shipment_result['barcodes'] as $_barcode) {
-                    $this->createLabelHistory($order, $_barcode, $service);
-                }
-                return $this->_getShipmentLabels($shipment_result['barcodes']);
             } else {
                 $result->setErrors(__('No saved barcodes received'));
             }
-        } catch (OmnivaException $e) {
+        } catch (\Throwable $e) {
+            $this->logger->debug($e->getMessage() . ' on ' . $e->getLine() . ' in ' . $e->getFile());
             $result->setErrors($e->getMessage());
         }
         return $result;
@@ -909,9 +838,14 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         return false;
     }
 
+    public function getOmnivaOrderLabel($order) {
+        $response = $this->api->get_label($order->getShipmentId());
+    }
+    
+
     public function getOmnivaOrder($order) {
         $order_shipping_method = $order->getData('shipping_method');
-        if (stripos($order_shipping_method, 'omniva_global') === false) {
+        if (stripos($order_shipping_method, 'omnivaglobal') === false) {
             return false;
         }
 
@@ -946,8 +880,8 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
 
     private function getOrderIdentifier($order) {
         $order_shipping_method = $order->getData('shipping_method');
-        if (stripos($order_shipping_method, 'omniva_global') !== false && stripos($order_shipping_method, '_terminal') !== false) {
-            $data = explode('_', str_ireplace(['omniva_global_', '_terminal'], '', $order_shipping_method));
+        if (stripos($order_shipping_method, 'omnivaglobal') !== false && stripos($order_shipping_method, '_terminal') !== false) {
+            $data = explode('_', str_ireplace(['omnivaglobal_', '_terminal'], '', $order_shipping_method));
             array_splice($data, 0, 1);
             return implode('_', $data);
         }
@@ -956,8 +890,8 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
 
     private function getOrderServiceCode($order) {
         $order_shipping_method = $order->getData('shipping_method');
-        if (stripos($order_shipping_method, 'omniva_global') !== false) {
-            $data = explode('_', str_ireplace(['omniva_global_', '_terminal'], '', $order_shipping_method));
+        if (stripos($order_shipping_method, 'omnivaglobal') !== false) {
+            $data = explode('_', str_ireplace(['omnivaglobal_', '_terminal'], '', $order_shipping_method));
             return $data[0];
         }
         return null;

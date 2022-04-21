@@ -27,8 +27,8 @@ class ConfigProvider implements ConfigProviderInterface
 
         $config = [
             'omnivaGlobalData' => [
-                'distance' => $this->scopeConfig->getValue('carriers/omniva_global/omniva_methods_group/terminal_distance') ?? 2,
-                'apiUrl' => $this->scopeConfig->getValue('carriers/omniva_global/production_webservices_url'),
+                'distance' => $this->scopeConfig->getValue('carriers/omnivaglobal/omniva_methods_group/terminal_distance') ?? 2,
+                'apiUrl' => $this->scopeConfig->getValue('carriers/omnivaglobal/production_webservices_url'),
             ]
         ];
 

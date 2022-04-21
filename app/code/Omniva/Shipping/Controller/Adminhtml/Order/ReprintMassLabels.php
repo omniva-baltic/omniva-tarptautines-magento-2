@@ -46,12 +46,8 @@ class ReprintMassLabels extends \Magento\Sales\Controller\Adminhtml\Order\Abstra
     }
 
     public function isOmnivaMethod($order) {
-        $_omnivaMethods = array(
-            'omniva_PARCEL_TERMINAL',
-            'omniva_COURIER'
-        );
         $order_shipping_method = $order->getData('shipping_method');
-        return in_array($order_shipping_method, $_omnivaMethods);
+        return stripos($order_shipping_method, 'omnivaglobal_') !== false;
     }
 
     private function _collectPostData($post_key = null) {

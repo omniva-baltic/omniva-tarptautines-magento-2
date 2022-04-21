@@ -83,15 +83,15 @@ if (count($items)):
                         <tr class = "data-row">
                             <?php
                             $order_items = array();
-                            $ids = $order->getId();
+                            $ids = $order->getOrderId();
                             ?>
                             <td><div class = "data-grid-cell-content"><input type = "checkbox" name = "items[]" class = "manifest-item" value = "<?php echo $ids; ?>"/></div></td>
-                            <td><div class = "data-grid-cell-content"><?php echo $order->getOrderId(); ?></div></td>
-                            <td><div class = "data-grid-cell-content"><?php echo $order->getServiceCode(); ?></div></td>
-                            <td><div class = "data-grid-cell-content"><?php echo $order->getShipmentId(); ?></div></td>
-                            <td><div class = "data-grid-cell-content"><?php echo $order->getCartId(); ?></div></td>
-                            <td><div class = "data-grid-cell-content"><?php echo $order->getTrackingNumbers(); ?></div></td>
-                            <td><div class = "data-grid-cell-content"><?php echo $order->getManifestDate(); ?></div></td>
+                            <td><div class = "data-grid-cell-content"><a href = "<?php echo $this->getOrderUrl($order->getOrderId());?>">#<?php echo $this->getOrderIncrement($order); ?></a></div></td>
+                            <td><div class = "data-grid-cell-content"><?php echo $order->getServiceCode() ?? '-'; ?></div></td>
+                            <td><div class = "data-grid-cell-content"><?php echo $order->getShipmentId() ?? '-'; ?></div></td>
+                            <td><div class = "data-grid-cell-content"><?php echo $order->getCartId() ?? '-'; ?></div></td>
+                            <td><div class = "data-grid-cell-content"><?php echo $order->getTrackingNumbers() ?? '-'; ?></div></td>
+                            <td><div class = "data-grid-cell-content"><?php echo $order->getManifestDate() ?? '-'; ?></div></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

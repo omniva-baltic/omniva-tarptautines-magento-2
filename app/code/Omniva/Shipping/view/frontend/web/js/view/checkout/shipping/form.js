@@ -29,7 +29,7 @@ define([
         hideSelect: function () {
             var method = quote.shippingMethod();
             var selectedMethod = method !== null ? method.method_code + '_' + method.carrier_code : null;
-            if (selectedMethod && selectedMethod.includes('_terminal_omniva_global')) {
+            if (selectedMethod && selectedMethod.includes('_terminal_omnivaglobal')) {
                 if ($('#omniva_global_map_container .tmjs-container').length === 0) {
                     this.createMap(method);
                 } else {

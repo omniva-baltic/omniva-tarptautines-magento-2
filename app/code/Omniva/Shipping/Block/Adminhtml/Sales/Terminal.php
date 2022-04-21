@@ -45,7 +45,7 @@ class Terminal extends \Magento\Backend\Block\Template
     public function getTerminalName() {
         $order = $this->getOrder();
         
-        if (stripos($order->getData('shipping_method'), 'omniva_global_') !== false && stripos($order->getData('shipping_method'), '_terminal') !== false) {
+        if (stripos($order->getData('shipping_method'), 'omnivaglobal_') !== false && stripos($order->getData('shipping_method'), '_terminal') !== false) {
             return $this->getTerminal($order);
         }
         return false;
@@ -56,7 +56,7 @@ class Terminal extends \Magento\Backend\Block\Template
         $order_id = $this->getRequest()->getParam('order_id');
         $order = $this->getOrder();
         
-        if (stripos($order->getData('shipping_method'), 'omniva_global_') !== false && stripos($order->getData('shipping_method'), '_terminal') !== false) {
+        if (stripos($order->getData('shipping_method'), 'omnivaglobal_') !== false && stripos($order->getData('shipping_method'), '_terminal') !== false) {
             return $this->getTerminalId($order);
         }
         return false;

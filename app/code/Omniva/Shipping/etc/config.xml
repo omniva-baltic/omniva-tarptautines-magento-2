@@ -8,7 +8,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <carriers>
-            <omniva_global>
+            <omnivaglobal>
                 <production_webservices_url><![CDATA[https://tarptautines.omniva.lt]]></production_webservices_url>
                 <shipment_requesttype>0</shipment_requesttype>
                 <active>0</active>
@@ -27,7 +27,7 @@
                 <product_width>20</product_width>
                 <product_height>20</product_height>
                 <product_length>20</product_length>
-            </omniva_global>
+            </omnivaglobal>
         </carriers>
     </default>
 </config>

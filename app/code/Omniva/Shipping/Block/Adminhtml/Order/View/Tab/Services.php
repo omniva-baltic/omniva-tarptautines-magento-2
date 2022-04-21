@@ -67,7 +67,7 @@ class Services extends \Magento\Backend\Block\Template implements \Magento\Backe
     public function isOmnivaMethod($order)
       {
         $order_shipping_method = strtolower($order->getData('shipping_method'));
-        return stripos($order_shipping_method, 'omniva_global_') !== false;
+        return stripos($order_shipping_method, 'omnivaglobal_') !== false;
       }
 
     /**

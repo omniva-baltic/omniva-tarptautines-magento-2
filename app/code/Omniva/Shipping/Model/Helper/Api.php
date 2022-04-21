@@ -114,6 +114,16 @@ class Api {
         return "";
     }
     
+    public function get_terminal($terminal_id){
+        try {
+            $terminal = $this->terminalFactory->create()->getCollection()->addFieldToFilter('terminal_id', $terminal_id)->getFirstItem();
+            return $terminal;
+        } 
+        catch (\Exception $e) {
+        }
+        return null;
+    }
+    
     public function get_offers($sender, $receiver, $parcels){
         return $this->omniva_api->getOffers($sender, $receiver, $parcels);
     }
