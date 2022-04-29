@@ -9,7 +9,7 @@ if (($this->blockIsVisible())) {
         } else {
             echo '<div style = "border:1px solid #ccc; padding: 10px; margin-top: 20px;">';
         }
-        echo '<b>' . __("Omniva parcel terminal") . '</b>: '; //.$pickup_point ;
+        echo '<b>' . __("Omniva international terminal") . '</b>: '; //.$pickup_point ;
         if ($this->getOrder()->getStatus() == "closed" || $this->getOrder()->getStatus() == "complete") {
             echo $pickup_point . '</div>';
         } else {

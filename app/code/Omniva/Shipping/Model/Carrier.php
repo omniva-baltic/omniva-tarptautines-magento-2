@@ -200,11 +200,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         if (!$this->getConfigFlag('active')) {
             return false;
         }
-        //$this->api->get_terminals();
-        $services_limit = $this->getConfigData('omniva_methods_group/services_limit') ?? 1;
-        $courier_title = $this->getConfigData('omniva_methods_group/courier_title') ?? 'Courier';
-        $terminal_title = $this->getConfigData('omniva_methods_group/terminal_title') ?? 'Terminal';
-        
+                
         $services = $this->getServices();
         $result = $this->_rateFactory->create();
         
@@ -212,80 +208,105 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         $packageWeight = $request->getPackageWeight();
         $this->_updateFreeMethodQuote($request);
         
-        $free_shipping_amount = $this->getConfigData('omniva_price_group/free_shipping_amount');
-        $is_free_shipping = $free_shipping_amount && $free_shipping_amount < $packageValue ? true : false;
+        
         
         try {
-            $offers = $this->filter_enabled_offers($this->get_offers($request));
+            $offers = $this->filter_enabled_offers($this->get_offers($request), $services);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
             return $result;
         }
-        $this->sort_offers($offers);
         $this->set_offers_price($offers);
+        
+        $grouped = $this->sort_offers($offers);
         //$this->logger->debug(json_encode($offers));
         
-        $current_service = 0;
-        if ($this->getConfigData('omniva_methods_group/courier_active') && (!$this->getConfigData('omniva_methods_group/courier_max_weight') || $this->getConfigData('omniva_methods_group/courier_max_weight') > $packageWeight )) {
-            foreach ($offers as $offer) {
-                if ($this->is_offer_terminal($offer)) {
-                    continue;
-                }
-                $method = $this->_rateMethodFactory->create();
+        $current_terminal = 0;
+        foreach ($grouped as $group => $offers) {
 
-                $method->setCarrier('omnivaglobal');
-                $method->setCarrierTitle('Omniva');
+            $free_shipping_amount = $this->getConfigData($group . '_service_group/free_shipping_amount');
+            $is_free_shipping = $free_shipping_amount && $free_shipping_amount < $packageValue ? true : false;
 
-                $method->setMethod($offer->service_code);
-                $method->setMethodTitle($courier_title. ' (' . $offer->delivery_time . ')');
-                $amount = $offer->price;
-                $method->setPrice($is_free_shipping ? 0 : $amount);
-                $method->setCost($is_free_shipping ? 0 : $amount);
-
-                $result->append($method);
-                $current_service++;
-                if ($services_limit <= $current_service) {
-                     break;
-                }
+            $title = $this->getConfigData($group . '_service_group/title');
+            if (!$title) {
+                $title = ucfirst(str_ireplace('_', '', $group));
             }
-        }
-        
-        if ($this->getConfigData('omniva_methods_group/terminal_active') && (!$this->getConfigData('omniva_methods_group/terminal_max_weight') || $this->getConfigData('omniva_methods_group/terminal_max_weight') > $packageWeight )) {
+
             foreach ($offers as $offer) {
                 if (!$this->is_offer_terminal($offer)) {
-                    continue;
+                
+                    $method = $this->_rateMethodFactory->create();
+
+                    $method->setCarrier('omnivaglobal');
+                    $method->setCarrierTitle('Omniva');
+
+                    $method->setMethod($offer->service_code);
+                    $method->setMethodTitle($title. ' (' . $offer->delivery_time . ')');
+                    $amount = $offer->price;
+                    $method->setPrice($is_free_shipping ? 0 : $amount);
+                    $method->setCost($is_free_shipping ? 0 : $amount);
+
+                    $result->append($method);
+                } else {
+                    if ($current_terminal == 0) {
+                        $method = $this->_rateMethodFactory->create();
+
+                        $method->setCarrier('omnivaglobal');
+                        $method->setCarrierTitle('Omniva');
+                        $method->setMethod($offer->service_code . '_' . $offer->parcel_terminal_type . '_terminal');
+                        $method->setMethodTitle($title. ' (' . $offer->delivery_time . ')');
+                        $amount = $offer->price;
+                        $method->setPrice($is_free_shipping ? 0 : $amount);
+                        $method->setCost($is_free_shipping ? 0 : $amount);
+
+                        $result->append($method);
+                        $current_terminal++;
+                    }
                 }
-                $method = $this->_rateMethodFactory->create();
-
-                $method->setCarrier('omnivaglobal');
-                $method->setCarrierTitle('Omniva');
-                $offer->parcel_terminal_type = 'w2s_inpost';
-                $method->setMethod($offer->service_code . '_' . $offer->parcel_terminal_type . '_terminal');
-                $method->setMethodTitle($terminal_title. ' (' . $offer->delivery_time . ')');
-                $amount = $offer->price;
-                $method->setPrice($is_free_shipping ? 0 : $amount);
-                $method->setCost($is_free_shipping ? 0 : $amount);
-
-                $result->append($method);
-                break;
             }
         }
         return $result;
     }
+
+    private function orderGroups($services) {
+        $groups = [];
+        foreach ($services as $service) {
+            $group_name = $service->service_type;
+            $group_code = str_ireplace([' ','-'],'_', strtolower($service->service_type));
+            if ($service->delivery_to_address == false) {
+                $group_name = 'Terminals';
+                $group_code = 'terminals';
+            }
+            $groups[$group_code] = $group_name;
+        }
+        return $groups;
+    }
     
-    private function filter_enabled_offers($offers) {
-        //$config = $this->get_config();
+    private function filter_enabled_offers($offers, $services) {
+        $groups = $this->orderGroups($services);
+        $selected_services = [];
+        foreach ($groups as $code=>$group) {
+            if ($this->getConfigData($code.'_service_group/active') == '1') {
+                $group_services = explode(',',$this->getConfigData($code.'_service_group/couriers'));
+                foreach ($group_services as $g_service) {
+                    if ($g_service) {
+                        $selected_services[$g_service] = $code;
+                    }
+                }
+            }
+        }
        // $own_login = isset($config['own_login']) && $config['own_login'] == 'yes' ? true : false;
         $filtered_offers = [];
-        $selected_services = explode(',',$this->getConfigData('omniva_methods_group/services'));
         $this->logger->debug(json_encode($selected_services));
+       // $this->logger->debug(json_encode($this->getConfigData()));
         foreach ($offers as $offer) {
-            $this->logger->debug(json_encode($offer));
-            if (in_array($offer->service_code, $selected_services)) {
+            //$this->logger->debug(json_encode($offer));
+            if (isset($selected_services[$offer->service_code])) {
                 //check if has own login and info is entered in settings
                 //if (!$this->is_own_login_ok($offer)) {
                 //    continue;
                 //}
+                $offer->group = $selected_services[$offer->service_code];
                 $filtered_offers[] = $offer;
             }
         }
@@ -293,24 +314,34 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
     }
     
     private function sort_offers(&$offers) {
-        $sort_by = $this->getConfigData('omniva_methods_group/services_order');
-        if ($sort_by == "fastest") {
-            usort($offers, function ($v, $k) {
-                return $this->get_offer_delivery($k) <= $this->get_offer_delivery($v);
-            });
-        } elseif ($sort_by == "cheapest") {
-            usort($offers, function ($v, $k) {
-                return $k->price <= $v->price;
-            });
+        $grouped = array();
+        foreach ($offers as $offer) {
+            if (!isset($grouped[$offer->group])) {
+                $grouped[$offer->group] = [];
+            }
+            $grouped[$offer->group][] = $offer;
         }
+        foreach ($grouped as $group => $grouped_offers) {
+            $sort_by = $this->getConfigData($group . '_service_group/services_order');
+            if ($sort_by == "fastest") {
+                usort($grouped[$group], function ($v, $k) {
+                    return $this->get_offer_delivery($k) <= $this->get_offer_delivery($v);
+                });
+            } elseif ($sort_by == "cheapest") {
+                usort($grouped[$group], function ($v, $k) {
+                    return $k->price <= $v->price;
+                });
+            }
+        }
+        return $grouped;
     }
     
     private function set_offers_price(&$offers) {
-        $type = $this->getConfigData('omniva_price_group/price_type');
-        $value = $this->getConfigData('omniva_price_group/price_value');
 
         foreach ($offers as $offer) {
             $offer->org_price = $offer->price;
+            $type = $this->getConfigData($offer->group . '_service_group/price_type');
+            $value = $this->getConfigData($offer->group . '_service_group/price_value');
             $offer->price = $this->calculate_price($offer->price, $type, $value);
         }
     }
@@ -731,7 +762,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
                 $receiver->setZipcode($terminal->getZip());
             }
             if ($omniva_order->getEori()) {
-                $receiver->setEori($omniva_order->getEori());
+                $receiver->setHsCode($omniva_order->getEori());
             }
 
             //set COD

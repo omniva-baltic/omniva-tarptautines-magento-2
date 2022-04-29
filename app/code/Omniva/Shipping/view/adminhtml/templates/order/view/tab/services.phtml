@@ -9,14 +9,7 @@
 ?>
 <?php /** @var $block \Magento\Sales\Block\Adminhtml\Order\View\Tab\Info */ ?>
 <?php $_order = $block->getOrder() ?>
-<?php $_orderServices = $_order->getOmnivaServices(); ?>
-<?php
-    if ($_orderServices == null){
-        $_orderServices = array('services'=> array());
-    } else {
-        $_orderServices = json_decode($_orderServices, true);
-    }
-?>
+
 <?php $_isOmniva = $block->isOmnivaMethod($_order) ?>
 <div id="order-messages">
     <?= $block->getChildHtml('order_messages') ?>
@@ -28,6 +21,14 @@
     <?php if ($_isOmniva): ?>
     
     <?php $omniva_order = $this->getOmnivaOrder(); ?>
+    <?php $_orderServices = $omniva_order->getServices(); ?>
+    <?php
+        if ($_orderServices == null){
+            $_orderServices = array();
+        } else {
+            $_orderServices = json_decode($_orderServices, true);
+        }
+    ?>
     <div class="admin__page-section-title">
         <span class="title"><?= /* @escapeNotVerified */ __('Omniva order') ?></span>
     </div>
@@ -35,12 +36,12 @@
         <div class="order-omniva-services-options" id = "omniva_int_block" style = "max-width: 400px;">
             <?php foreach ($this->getServices() as $service): ?>
             <div class="admin__field admin__field-option">
-                <input name="omniva_services[]" type="checkbox" id="service-<?php echo $service['value']; ?>" class="admin__control-checkbox" value="<?php echo $service['value']; ?>" <?php echo (isset($_orderServices['services']) && in_array($service['value'],$_orderServices['services'])?'checked="checked"':'');?>>
+                <input name="omniva_services[]" type="checkbox" id="service-<?php echo $service['value']; ?>" class="admin__control-checkbox" value="<?php echo $service['value']; ?>" <?php echo ( in_array($service['value'],$_orderServices)?'checked="checked"':'');?>>
                 <label class="admin__field-label" for="service-<?php echo $service['value']; ?>"><?php echo $service['title']; ?></label>
             </div>
             <?php endforeach; ?>
             <div class="admin__field">
-                <label for="omniva_eori" class="admin__field-label">EORI number</label>
+                <label for="omniva_eori" class="admin__field-label">HS code</label>
                 <div class="admin__field-control">
                     <input type = "text" name="omniva_eori" id="omniva_eori" class="admin__control-textarea" value = "<?= $omniva_order ? $omniva_order->getEori():'';?>"/>
                 </div>

@@ -1,0 +1,13 @@
+ul.services-container li {
+    max-width: 100%;
+    width: 220px;
+    background: #dfdfdf;
+    border: 1px solid #E3E3E3;
+    border-radius: 4px;
+    padding: 10px;
+    display: inline-block;
+    margin: 0 10px 10px 0;
+}
+.admin__page-section.omniva-tab-content {
+    margin-bottom: 15px;
+}

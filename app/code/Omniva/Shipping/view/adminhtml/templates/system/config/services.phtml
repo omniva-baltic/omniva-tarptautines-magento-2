@@ -1,0 +1,15 @@
+<input type="hidden" name="<?php echo $this->getNamePrefix() ?>" value="" /><!-- this is send if nothing is checked -->
+<ul class="checkboxes services-container">
+    <?php foreach ($this->getValues($this->getHtmlId()) as $name => $label): ?>
+        <li>
+            <input type="checkbox" value="<?php echo $name?>"
+                   name="<?php echo $this->getNamePrefix() ?>"
+                   id="<?php echo $this->getHtmlId() . '_' . $name ?>"
+                <?php echo ($this->getIsChecked($name, $this->getHtmlId()) ? ' checked="checked"' : '') ?>
+            />
+            <label for="<?php echo $this->getHtmlId() . '_' . $name ?>">
+                <?php echo $label ?>
+            </label>
+        </li>
+    <?php endforeach;?>
+</ul>
