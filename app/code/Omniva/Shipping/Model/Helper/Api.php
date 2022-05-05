@@ -115,6 +115,9 @@ class Api {
     }
     
     public function get_terminal($terminal_id){
+        if ($terminal_id === null || !$terminal_id) {
+            return null;
+        }
         try {
             $terminal = $this->terminalFactory->create()->getCollection()->addFieldToFilter('terminal_id', $terminal_id)->getFirstItem();
             return $terminal;

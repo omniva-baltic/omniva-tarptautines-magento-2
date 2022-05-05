@@ -30,7 +30,6 @@ function loadTerminalMapping() {
   tmjs_country_code = jQuery('#order_receiver_attributes_country_code').val();
   tmjs_identifier = jQuery('#order_receiver_attributes_service_identifier').val();
 
-  console.log(omnivaGlobalSettings);  
   tmjs.setImagesPath(omnivaGlobalSettings.api_url + '/');
   tmjs.init({country_code: omnivaGlobalSettings.country , identifier: omnivaGlobalSettings.identifier, city: omnivaGlobalSettings.city , post_code: omnivaGlobalSettings.postcode, receiver_address: omnivaGlobalSettings.address, max_distance: omnivaGlobalSettings.max_distance});
 

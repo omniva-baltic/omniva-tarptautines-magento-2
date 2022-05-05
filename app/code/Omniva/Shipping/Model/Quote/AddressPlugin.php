@@ -21,9 +21,9 @@ class AddressPlugin
     {
     	
         $result = $proceed($method, $vars);
-        
+
         if ($method == 'setShippingMethod'
-            && $vars[0] == Carrier::CODE.'_PARCEL_TERMINAL'
+            && stripos($vars[0], Carrier::CODE) !== false && stripos($vars[0], "_terminal") !== false 
             && $subject->getExtensionAttributes()
             && $subject->getExtensionAttributes()->getOmnivaIntTerminal()
         ) {
@@ -31,7 +31,7 @@ class AddressPlugin
         }
         elseif (
             $method == 'setShippingMethod'
-            && $vars[0] != Carrier::CODE.'_PARCEL_TERMINAL'
+            && (stripos($vars[0], Carrier::CODE) === false || stripos($vars[0], "_terminal") === false)
         ) {
             //reset office when changing shipping method
             $subject->setOmnivaIntTerminal(0);

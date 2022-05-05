@@ -1,0 +1,76 @@
+<?xml version="1.0" ?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+  <fieldset name="default_product_parameters">
+    <argument name="data" xsi:type="array">
+        <item name="config" xsi:type="array">
+            <item name="label" xsi:type="string">Default product parameters</item>
+            <item name="collapsible" xsi:type="boolean">true</item>
+            <item name="sortOrder" xsi:type="number">100</item>
+        </item>
+    </argument>
+    <field name="product_weight">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="required" xsi:type="boolean">false</item>
+                <item name="validation" xsi:type="array">
+                    <item name="required-entry" xsi:type="boolean">false</item>
+                    <item name="validate-number" xsi:type="boolean">true</item>
+                    <item name="validate-zero-or-greater" xsi:type="boolean">true</item>
+                </item>
+                <item name="sortOrder" xsi:type="number">1</item>
+                <item name="dataType" xsi:type="string">string</item>
+                <item name="formElement" xsi:type="string">input</item>
+                <item name="label" translate="true" xsi:type="string">Product weight, kg</item>
+            </item>
+        </argument>
+    </field>
+    <field name="product_length">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="required" xsi:type="boolean">false</item>
+                <item name="validation" xsi:type="array">
+                    <item name="required-entry" xsi:type="boolean">false</item>
+                    <item name="validate-number" xsi:type="boolean">true</item>
+                    <item name="validate-zero-or-greater" xsi:type="boolean">true</item>
+                </item>
+                <item name="sortOrder" xsi:type="number">2</item>
+                <item name="dataType" xsi:type="string">string</item>
+                <item name="formElement" xsi:type="string">input</item>
+                <item name="label" translate="true" xsi:type="string">Product length, cm</item>
+            </item>
+        </argument>
+    </field>
+    <field name="product_width">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="required" xsi:type="boolean">false</item>
+                <item name="validation" xsi:type="array">
+                    <item name="required-entry" xsi:type="boolean">false</item>
+                    <item name="validate-number" xsi:type="boolean">true</item>
+                    <item name="validate-zero-or-greater" xsi:type="boolean">true</item>
+                </item>
+                <item name="sortOrder" xsi:type="number">3</item>
+                <item name="dataType" xsi:type="string">string</item>
+                <item name="formElement" xsi:type="string">input</item>
+                <item name="label" translate="true" xsi:type="string">Product width, cm</item>
+            </item>
+        </argument>
+    </field>
+    <field name="product_height">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="required" xsi:type="boolean">false</item>
+                <item name="validation" xsi:type="array">
+                    <item name="required-entry" xsi:type="boolean">false</item>
+                    <item name="validate-number" xsi:type="boolean">true</item>
+                    <item name="validate-zero-or-greater" xsi:type="boolean">true</item>
+                </item>
+                <item name="sortOrder" xsi:type="number">4</item>
+                <item name="dataType" xsi:type="string">string</item>
+                <item name="formElement" xsi:type="string">input</item>
+                <item name="label" translate="true" xsi:type="string">Product height, cm</item>
+            </item>
+        </argument>
+    </field>
+   </fieldset>
+</form>

@@ -213,7 +213,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         try {
             $offers = $this->filter_enabled_offers($this->get_offers($request), $services);
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            $this->logger->error($e->getMessage() . ' in file ' . $e->getFile() . ' on line ' . $e->getLine());
             return $result;
         }
         $this->set_offers_price($offers);
@@ -297,7 +297,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         }
        // $own_login = isset($config['own_login']) && $config['own_login'] == 'yes' ? true : false;
         $filtered_offers = [];
-        $this->logger->debug(json_encode($selected_services));
+        //$this->logger->debug(json_encode($selected_services));
        // $this->logger->debug(json_encode($this->getConfigData()));
         foreach ($offers as $offer) {
             //$this->logger->debug(json_encode($offer));
@@ -371,17 +371,52 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         $parcels = $this->get_parcels($request);
         return $this->api->get_offers($this->get_sender(), $this->get_receiver($request), $parcels);
     }
+
+    private function get_cats_product_data(&$c_weight, &$c_width, &$c_length, &$c_height, $cat) {
+        if ($c_weight == null) {
+            $c_weight = $cat->getProductWeight();
+        }
+        if ($c_width == null) {
+            $c_width = $cat->getProductWidth();
+        }
+        if ($c_length == null) {
+            $c_length = $cat->getProductLength();
+        }
+        if ($c_height == null) {
+            $c_height = $cat->getProductHeight();
+        }
+        if ($c_weight && $c_width && $c_length && $c_height) {
+            return true;
+        }
+        if ($cat->getLevel() > 1) {
+            $parent = $cat->getParentCategory();
+            if ($parent) {
+                $this->get_cats_product_data($c_weight, $c_width, $c_length, $c_height, $parent);
+            }
+        }
+    }
     
     private function get_parcels($request) {
         $parcels = [];
             $items = $request->getAllItems();
             foreach ($items as $item) {
+                $c_weight = null;
+                $c_width = null;
+                $c_length = null;
+                $c_height = null;
                 $product = $item->getProduct();
+                $cats = $product->getCategoryCollection();
+                foreach ($cats as $cat) {
+                    $this->get_cats_product_data($c_weight, $c_width, $c_length, $c_height, $cat);
+                    if ($c_weight && $c_width && $c_length && $c_height) {
+                        break;
+                    }
+                } 
                 $parcel = new Parcel();
-                $parcel->setUnitWeight($product->getData('weight') ?? $this->getConfigData('omniva_product_group/product_weight'));
-                $parcel->setHeight($product->getData('ts_dimensions_height') ?? $this->getConfigData('omniva_product_group/product_height'));
-                $parcel->setWidth($product->getData('ts_dimensions_width') ?? $this->getConfigData('omniva_product_group/product_width'));
-                $parcel->setLength($product->getData('ts_dimensions_length') ?? $this->getConfigData('omniva_product_group/product_length'));
+                $parcel->setUnitWeight($product->getData('weight') ?? ($c_weight ? $c_weight : $this->getConfigData('omniva_product_group/product_weight')) );
+                $parcel->setHeight($product->getData('ts_dimensions_height') ?? ($c_height ? $c_height : $this->getConfigData('omniva_product_group/product_height')) );
+                $parcel->setWidth($product->getData('ts_dimensions_width') ?? ($c_width ? $c_width : $this->getConfigData('omniva_product_group/product_width')) );
+                $parcel->setLength($product->getData('ts_dimensions_length') ?? ($c_length ? $c_length : $this->getConfigData('omniva_product_group/product_length')) );
                 $parcel->setAmount((int)($item->getQty() ?? $item->getQtyOrdered()));
                 $parcels[] = $parcel->generateParcel();
             }

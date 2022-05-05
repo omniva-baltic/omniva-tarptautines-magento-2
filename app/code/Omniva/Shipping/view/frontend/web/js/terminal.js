@@ -224,14 +224,9 @@ var TerminalMapping = /*#__PURE__*/function () {
         //console.log('fetch ' + _this2.api_server_url + 'parcel_machines' + (params ? '?' + params : ''));
         fetch(_this2.api_server_url + 'parcel_machines' + (params ? '?' + params : ''), 
         {
-            headers: {
-              'Access-Control-Allow-Origin':'*',
-            },
-            referrerPolicy: "unsafe-url"
         }).then(function (response) {
           return response.json();
         }).then(function (json) {
-          console.log(json);
           var terminals = json.result.parcel_machines.map(function (terminal) {
             terminal['coords'] = {
               lat: terminal.y_cord,
@@ -239,7 +234,6 @@ var TerminalMapping = /*#__PURE__*/function () {
             };
             return terminal;
           }); //.filter(terminal => terminal.identifier == 'lp_express');
-          console.log(terminals);
           _this2.setTerminals(terminals);
 
           _this2.dom.renderTerminalList(_this2.map.locations);
@@ -832,7 +826,7 @@ var DOMManipulator = /*#__PURE__*/function () {
       if (event.target.classList.contains('tmjs-select-btn')) {
           
         console.log('Trying to select terminal:', data.dataset.id);
-        jQuery('input[name="omnivaglobal_terminal"]').val(data.dataset.id);
+        jQuery('input[name="omniva_global_terminal"]').val(data.dataset.id).trigger('change');
         /*
         jQuery.ajax({
           type: 'POST',

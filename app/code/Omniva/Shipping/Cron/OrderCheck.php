@@ -26,13 +26,18 @@ class OrderCheck
 			$orders = $this->omnivaOrderFactory->create()->getCollection() ->addFieldToSelect('*');
 			$orders->addFieldToFilter('shipment_id', array(['notnull' => true]))->addFieldToFilter('tracking_numbers', array(['null' => true]));
 			$logger->info('Found orders: ' . count($orders));
-			
-			foreach ($orders as $order) {
-				$response = $this->omnivaCarrier->getOmnivaOrderLabel($order);
-				$logger->info(json_encode($response));
-			}
 		} catch (\Throwable $e) {
 			$logger->info($e->getMessage());
+		}	
+		if (!empty($orders)) {
+			foreach ($orders as $order) {
+				try {
+					$response = $this->omnivaCarrier->getOmnivaOrderLabel($order);
+					$logger->info(json_encode($response));
+				} catch (\Throwable $e) {
+					$logger->info($e->getMessage());
+				}	
+			}
 		}
 
 		return $this;

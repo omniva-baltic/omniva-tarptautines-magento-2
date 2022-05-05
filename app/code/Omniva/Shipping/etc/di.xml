@@ -10,12 +10,12 @@
     <preference for="Omniva\Shipping\Api\Data\ParcelTerminalInterface" type="Omniva\Shipping\Model\ParcelTerminal" />
 
     <type name="Magento\Rma\Block\Adminhtml\Rma\Edit\Tab\General\Shippingmethod">
-        <plugin name="rma_tab_shippingmethod_omniva"
+        <plugin name="rma_tab_shippingmethod_omniva_int"
                 type="Omniva\Shipping\Model\Plugin\Rma\Block\Adminhtml\Rma\Edit\Tab\General\Shippingmethod"/>
     </type>
     
     <type name="Magento\Quote\Model\Quote\Address">
-        <plugin name="parcel-terminal-address" type="Omniva\Shipping\Model\Quote\AddressPlugin" sortOrder="1" disabled="false"/>
+        <plugin name="omniva-int-terminal-address" type="Omniva\Shipping\Model\Quote\AddressPlugin" sortOrder="1" disabled="false"/>
     </type>
     <!--
     <type name="Magento\Checkout\Model\ShippingInformationManagement">

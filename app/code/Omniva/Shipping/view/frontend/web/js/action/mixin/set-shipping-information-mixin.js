@@ -16,14 +16,13 @@ define([
                 let selectedShippingMethod = quote.shippingMethod();
                 let shippingAddress = quote.shippingAddress();
                 
-                
-                if (selectedShippingMethod.carrier_code !== 'omniva') {
+                if (selectedShippingMethod.carrier_code !== 'omnivaglobal') {
                     return originalAction();
                 }
                 
                 let terminal = $omnivaData.getPickupPoint();
                 
-                if (selectedShippingMethod.method_code === 'PARCEL_TERMINAL' &&
+                if (selectedShippingMethod.method_code.includes('_terminal') &&
                     !terminal) {
                     globalMessageList.addErrorMessage(
                         {message: $t('Select Omniva parcel terminal!')});
@@ -36,7 +35,7 @@ define([
                 }
                 
                 shippingAddress.extensionAttributes.omniva_int_terminal = terminal;
-
+                console.log(shippingAddress);
                 return originalAction();
             });
     };
