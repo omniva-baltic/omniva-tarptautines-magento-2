@@ -1,5 +1,5 @@
-
 <?php
+echo '<img src = "'.$block->getViewFileUrl('Omniva_Shipping::images/omniva-logo.svg').'" class = "omniva-int-manifest-logo"/>';
 $items = $this->getOrders();
 if ($this->getMagentoVersion() < '2.3.0') {
     $old_version = true;

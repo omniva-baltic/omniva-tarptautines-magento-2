@@ -11,3 +11,7 @@ ul.services-container li {
 .admin__page-section.omniva-tab-content {
     margin-bottom: 15px;
 }
+.omniva-int-manifest-logo {
+    height: 60px;
+    margin-bottom: 20px;
+}
