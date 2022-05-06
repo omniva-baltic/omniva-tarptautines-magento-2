@@ -142,4 +142,52 @@ class Services extends \Magento\Backend\Block\Template implements \Magento\Backe
     {
         return $this->getUrl('omnivaservices/*/*', ['order_id' => $orderId]);
     }
+
+    public function getTerminalName() {
+        $order = $this->getOrder();
+        
+        if (stripos($order->getData('shipping_method'), 'omnivaglobal_') !== false && stripos($order->getData('shipping_method'), '_terminal') !== false) {
+            return $this->getTerminal($order);
+        }
+        return false;
+    }
+
+    public function getCurrentTerminal() {
+        //$orderRepository = new \Magento\Sales\Model\OrderRepository();
+        $order_id = $this->getRequest()->getParam('order_id');
+        $order = $this->getOrder();
+        
+        if (stripos($order->getData('shipping_method'), 'omnivaglobal_') !== false && stripos($order->getData('shipping_method'), '_terminal') !== false) {
+            return $this->getTerminalId($order);
+        }
+        return false;
+    }
+
+    public function getTerminalId($order) {
+        $shippingAddress = $order->getShippingAddress();
+        $terminal_id = $shippingAddress->getOmnivaIntTerminal();
+        return $terminal_id;
+    }
+
+    public function getTerminal($order) {
+        $shippingAddress = $order->getShippingAddress();
+        $terminal_id = $shippingAddress->getOmnivaIntTerminal();
+        
+        $parcel_terminal = $this->omniva_carrier->getTerminalAddress($terminal_id);
+        return $parcel_terminal;
+    }
+
+    public function getTerminals($order = false) {
+        $parcel_terminals = $this->omniva_carrier->getTerminals($this->getReceiverCountry($order)); //$this->getAddress()->getCountryId());
+        return $parcel_terminals;
+    }
+
+    public function getReceiverCountry($order) {
+        if (!$order) {
+            return 'LT';
+        }
+        $shippingAddress = $order->getShippingAddress();
+        $country = $shippingAddress->getCountryId();
+        return $country ?? 'LT';
+    }
 }

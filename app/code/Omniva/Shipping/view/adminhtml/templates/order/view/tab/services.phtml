@@ -22,6 +22,7 @@
     
     <?php $omniva_order = $this->getOmnivaOrder(); ?>
     <?php $_orderServices = $omniva_order->getServices(); ?>
+    <?php $pickup_point = $this->getTerminalName(); ?>
     <?php
         if ($_orderServices == null){
             $_orderServices = array();
@@ -30,9 +31,41 @@
         }
     ?>
     <div class="admin__page-section-title">
-        <span class="title"><?= /* @escapeNotVerified */ __('Omniva order') ?></span>
+        <span class="title"><?= /* @escapeNotVerified */ __('Omniva International order') ?></span>
     </div>
     <div class="admin__field">
+        <?php if ($omniva_order->getShipmentId() &&  $omniva_order->getCartId()): ?>
+            <table class = "omniva-int-order-details">
+                <tr>
+                    <th><?php echo __('Manifest id');?></th>
+                    <td><?php echo $omniva_order->getCartId(); ?></td>
+                </tr>
+                <tr>
+                    <th><?php echo __('Shipment id');?></th>
+                    <td><?php echo $omniva_order->getShipmentId(); ?></td>
+                </tr>
+                <tr>
+                    <th><?php echo __('Tracking number');?></th>
+                    <td><?php echo $omniva_order->getTrackingNumbers() ? $omniva_order->getTrackingNumbers() : __('Generating ...'); ?></td>
+                </tr>
+                <?php if ($pickup_point): ?>
+                <tr>
+                    <th><?php echo __('Terminal');?></th>
+                    <td><?php echo $pickup_point; ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if ($omniva_order->getTrackingNumbers() || true) : ?>
+                    <tr>
+                        <td colspan = "2">
+                            <a href = "<?php echo $this->getUrl('omniva/order/printlabel'); ?>?shipment_id=<?php echo $omniva_order->getShipmentId(); ?>" target = "blank" id="omniva-int-btn" class="action-default scalable action-save action-secondary"  data-ui-id="widget-button-0">
+                                <span><?php echo __("Print label"); ?></span>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </table>
+
+        <?php else: ?>    
         <div class="order-omniva-services-options" id = "omniva_int_block" style = "max-width: 400px;">
             <?php foreach ($this->getServices() as $service): ?>
             <div class="admin__field admin__field-option">
@@ -49,23 +82,66 @@
             <input type="hidden" name="order_id" value="<?= /* @escapeNotVerified */ $_order->getId() ?>"/>
         </div>
         <br/>
+        <?php
+    
+        if ($pickup_point) {
+            $button = '<button id = "change-int-terminal" class = "action-secondary">' . __('Change') . '</button>';
+            if ($this->getMagentoVersion() >= 2.2) {
+                echo '<div class="admin__field">';
+            } else {
+                echo '<div class="admin__field">';
+            }
+            echo '<label for="omniva_int_terminal_list" class="admin__field-label">' . __("Terminal") . '</label>'; //.$pickup_point ;
+                ?>
+                <?php $locs = $this->getTerminals($this->getOrder()); ?>
+                <?php $current_terminal = $this->getCurrentTerminal(); ?>
+            <div class="admin__field-control">
+                <select name = "order[omniva_pickup_point]" id = "omniva_int_terminal_list" data-url = '<?= $this->getUrl('omniva/order/UpdateTerminal') ?>' data-order = '<?= $this->getOrder()->getId(); ?>' style = "display: inline; height: 32px;">
+                    <option value = "">Select parcel terminal</option>
+                    <?php
+                    $grouped_options = array();
+                    if (!empty($locs)) {
+                        foreach ($locs as $loc) {
+                            $key = $loc->getTerminalId();
+                            if (!isset($grouped_options[(string) $loc->getCity()])) {
+                                $grouped_options[(string) $loc->getCity()] = array();
+                            }
+                            $grouped_options[(string) $loc->getCity()][(string) $key] = $loc;
+                        }
+                    }
+                    ksort($grouped_options);
+                    foreach ($grouped_options as $city => $locs) {
+                        echo '<optgroup label = "' . $city . '">';
+                        foreach ($locs as $key => $loc) {
+                            echo '<option value = "' . $key . '" ' . ($key == $current_terminal ? 'selected' : '') . '>' . $loc->getName() . ', ' . $loc->getAddress() . ', ' . $loc->getCity() . ', ' . $loc->getCountryCode() . '</option>';
+                        }
+                        echo '</optgroup>';
+                    }
+                    ?>
+                </select>   
+                <?php
+                echo $button;
+                echo '</div>';
+                echo '</div>';
+        }
+        ?>
         <div class="order-omniva-services-actions">
             <button id="omniva-int-btn" title="Save" type="button" class="action-default scalable action-save action-secondary" onclick="submitAndReloadArea($('omniva_int_block').parentNode, '<?php echo $this->getUrl('omniva/order/saveservicesajax'); ?>')" data-ui-id="widget-button-0">
                 <span><?php echo __("Save"); ?></span>
             </button>
         </div>
+        <?php endif; ?>
     </div>
     
     <script>
     require(['prototype'], function(){
+        saveOmnivaInt = function() {
+            submitAndReloadArea($('omniva_int_block').parentNode, '<?= /* @escapeNotVerified */ $block->getSubmitUrl() ?>')
+        }
 
-    saveOmnivaInt = function() {
-        submitAndReloadArea($('omniva_int_block').parentNode, '<?= /* @escapeNotVerified */ $block->getSubmitUrl() ?>')
-    }
-
-    if ($('#omniva-int-btn')) {
-        $('#omniva-int-btn').observe('click', saveOmnivaInt);
-    }
+        if ($('#omniva-int-btn')) {
+            $('#omniva-int-btn').observe('click', saveOmnivaInt);
+        }
 
     });
     </script>
@@ -73,9 +149,6 @@
     
     <?php else: ?>
     
-    <div class="admin__page-section-title">
-        <span class="title"><?= /* @escapeNotVerified */ __('Not Omniva service') ?></span>
-    </div>
     
     <?php endif; ?>
 </section>

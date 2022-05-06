@@ -1,5 +1,5 @@
 define([
-    'jquery'
+    'jquery','Omniva_Shipping/js/select2.min'
 ], function ($) {
     'use strict';
 
@@ -29,5 +29,7 @@ define([
         var terminal_id = select.val();
         getForm(url, order_id, terminal_id).appendTo('body').submit();
     });
+    
+    $('#omniva_int_terminal_list').select2();
     
 });

@@ -1,8 +1,11 @@
 <?xml version="1.0"?>
     <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="admin-2columns-left" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">  
+    <head>
+        <css src="Omniva_Shipping::css/select2.min.css"/>
+    </head>
     <body> 
         <referenceContainer name="js">
-                <block class="Magento\Backend\Block\Template" template="Omniva_Shipping::order/view/js.phtml" name="omniva_shipping_order_view_js"/>
+                <block class="Magento\Backend\Block\Template" template="Omniva_Shipping::order/view/js.phtml" name="omniva_int_shipping_order_view_js"/>
         </referenceContainer>   
         <referenceBlock name="payment_additional_info">
             <block class="Omniva\Shipping\Block\Adminhtml\Sales\Terminal" name="omniva_terminal_old" template="order/view/terminal.phtml">
@@ -13,7 +16,6 @@
         </referenceBlock>  
         <referenceBlock name="order_additional_info">
             <block class="Omniva\Shipping\Block\Adminhtml\Order\View\Tab\Services" name="omniva_int_tab" template="order/view/tab/services.phtml" />
-            <block class="Omniva\Shipping\Block\Adminhtml\Sales\Terminal" name="omniva_int_terminal" template="order/view/terminal.phtml" />
         </referenceBlock>
     </body>
 </page>

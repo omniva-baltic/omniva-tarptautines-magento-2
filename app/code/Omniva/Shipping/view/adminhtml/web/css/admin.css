@@ -15,3 +15,10 @@ ul.services-container li {
     height: 60px;
     margin-bottom: 20px;
 }
+.omniva-int-order-details th, .omniva-int-order-details td {
+    text-align: left;
+    padding: 5px;
+}
+.order-omniva-services-actions {
+    margin-top: 20px;
+}

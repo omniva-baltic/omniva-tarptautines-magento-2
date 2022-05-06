@@ -187,7 +187,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
                 $data
         );
         
-        $this->api->setup($this->getConfigData('secret') ?? 'no_token', $this->getConfigData('production_webservices_url'));
+        $this->api->setup($this->getConfigData('secret') ? $this->getConfigData('secret')  : 'no_token', $this->getConfigData('production_webservices_url'));
     }
 
     /**
@@ -783,6 +783,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
                 $response = $this->api->cancel_order($omniva_order->getShipmentId());
                 $omniva_order->setShipmentId(null);
                 $omniva_order->setCartId(null);
+                $omniva_order->setTrackingNumbers(null);
                 $omniva_order->save();
             }
             $cod_amount = 0;
@@ -906,6 +907,10 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
 
     public function getOmnivaOrderLabel($order) {
         $response = $this->api->get_label($order->getShipmentId());
+    }
+
+    public function getOmnivaShipmentLabel($shipment_id) {
+        $response = $this->api->get_label($shipment_id);
     }
     
 
