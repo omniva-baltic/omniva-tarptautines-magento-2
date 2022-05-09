@@ -13,7 +13,7 @@ if (count($items)):
         if ($item->getManifestDate() == NULL) {
             $date = "new";
         } else {
-            $date = date('Y-m-d H:i', strtotime($item->getManifestnDate()));
+            $date = date('Y-m-d H:i', strtotime($item->getManifestDate()));
         }
         if (!isset($grouped_items[$date])) {
             $grouped_items[$date] = array();
@@ -75,6 +75,7 @@ if (count($items)):
                         <th class = "data-grid-th"><span class="data-grid-cell-content"><?php echo __('Manifest id'); ?></span></th>
                         <th class = "data-grid-th"><span class="data-grid-cell-content"><?php echo __('Tracking'); ?></span></th>
                         <th class = "data-grid-th"><span class="data-grid-cell-content"><?php echo __('Manifest generation date'); ?></span></th>
+                        <th class = "data-grid-th"><span class="data-grid-cell-content"><?php echo __('Actions'); ?></span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,8 +91,24 @@ if (count($items)):
                             <td><div class = "data-grid-cell-content"><?php echo $order->getServiceCode() ?? '-'; ?></div></td>
                             <td><div class = "data-grid-cell-content"><?php echo $order->getShipmentId() ?? '-'; ?></div></td>
                             <td><div class = "data-grid-cell-content"><?php echo $order->getCartId() ?? '-'; ?></div></td>
-                            <td><div class = "data-grid-cell-content"><?php echo $order->getTrackingNumbers() ?? '-'; ?></div></td>
+                            <td><div class = "data-grid-cell-content"><?php $this->showTrackings($order); ?></div></td>
                             <td><div class = "data-grid-cell-content"><?php echo $order->getManifestDate() ?? '-'; ?></div></td>
+                            <td><div class = "data-grid-cell-content">
+                                <?php if ($order->getTrackingNumbers()) : ?>
+                                <a href = "<?php echo $this->getUrl('omniva/order/printlabel'); ?>?shipment_id=<?php echo $order->getShipmentId(); ?>" target = "blank" id="omniva-int-btn" class="action-default scalable action-save action-secondary"  data-ui-id="widget-button-0">
+                                    <span><?php echo __("Print label"); ?></span>
+                                </a>
+                                <?php endif; ?>
+                                
+                                <?php if ($order->getManifestDate() && $order->getCartId()) : ?>
+                                    <a href="<?php echo $this->getUrl('omniva/order/printmanifest'); ?>?omniva_global_manifest=<?php echo $order->getCartId(); ?>&labels=1" target = "_blank" class="action-default scalable action-save action-secondary">
+                                        <span><?php echo __('Print manifest labels', 'omniva_global'); ?></span>
+                                    </a>
+                                    <a href="<?php echo $this->getUrl('omniva/order/printmanifest'); ?>?omniva_global_manifest=<?php echo $order->getCartId(); ?>" target = "_blank" class="action-default scalable action-save action-secondary">
+                                        <span><?php echo __('Print manifest', 'omniva_global'); ?></span>
+                                    </a>
+                                <?php endif; ?>
+                            </div></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -102,21 +119,15 @@ if (count($items)):
     <div>
         <br/>
         <div class="f-left">
-            <form id = "manifest-print-form" action = "<?php echo $this->getUrl('omniva/omnivamanifest/printmanifest' . ($old_version ? 'ov' : '')); ?>" method = "POST">
-                <input type = "hidden" name = "form_key" value = "<?php echo $this->getFormKey(); ?>"/>
-            </form>
-            <form id = "labels-print-form" action = "<?php echo $this->getUrl('omniva/omnivamanifest/printlabels' . ($old_version ? 'ov' : '')); ?>" method = "POST">
-                <input type = "hidden" name = "form_key" value = "<?php echo $this->getFormKey(); ?>"/>
-            </form>
             <form id = "labels-generate-form" action = "<?php echo $this->getUrl('omniva/omnivamanifest/generatelabels' . ($old_version ? 'ov' : '')); ?>" method = "POST">
                 <input type = "hidden" name = "form_key" value = "<?php echo $this->getFormKey(); ?>"/>
             </form>
-            <button id="submit_manifest_items" title="<?php echo __('Print manifest'); ?>" type="button" class="scalable save">
-                <span><span><span><?php echo __('Print manifest'); ?></span></span></span>
-            </button>      
-            <button id="print_manifest_labels" title="<?php echo __('Print labels'); ?>" type="button" class="scalable save">
-                <span><span><span><?php echo __('Print labels'); ?></span></span></span>
-            </button>    
+            <a href = "<?php echo $this->getUrl('omniva/order/printmanifest'); ?>" target="_blank" title="<?php echo __('Generate latest manifest'); ?>" type="button" class="action-default scalable action-save action-secondary">
+                <span><?php echo __('Generate latest manifest'); ?></span>
+            </a>  
+            <a href = "<?php echo $this->getUrl('omniva/order/printmanifest'); ?>?labels=1" target="_blank" title="<?php echo __('Print latest manifest labels'); ?>" type="button" class="action-default scalable action-save action-secondary">
+                <span><?php echo __('Print latest manifest labels'); ?></span>
+            </a>  
             <button id="submit_manifest_labels" title="<?php echo __('Generate labels'); ?>" type="button" class="scalable save">
                 <span><span><span><?php echo __('Generate labels'); ?></span></span></span>
             </button>     
@@ -126,38 +137,6 @@ if (count($items)):
     <script>
         require(['jquery'], function ($) {
             $('document').ready(function () {
-                $('#submit_manifest_items').on('click', function () {
-                    var ids = "";
-                    $('.manifest-item:checked').each(function () {
-                        ids += $(this).val() + ";";
-                        var id = $(this).val();
-                        $('#manifest-print-form').append('<input type="hidden" name="order_ids[]" value = "' + id + '" />');
-                    });
-                    $('#item_ids').val(ids);
-                    if (ids == "") {
-                        alert('<?php echo __('Select orders'); ?>');
-                    } else {
-                        $('#manifest-print-form').submit();
-                    }
-                    //console.log($('#item_ids').val());
-
-                });
-                
-                $('#print_manifest_labels').on('click', function () {
-                    var ids = "";
-                    $('.manifest-item:checked').each(function () {
-                        ids += $(this).val() + ";";
-                        var id = $(this).val();
-                        $('#labels-print-form').append('<input type="hidden" name="order_ids[]" value = "' + id + '" />');
-                    });
-                    if (ids == "") {
-                        alert('<?php echo __('Select orders'); ?>');
-                    } else {
-                        $('#labels-print-form').submit();
-                    }
-                    //console.log($('#item_ids').val());
-
-                });
 
                 $('#submit_manifest_labels').on('click', function () {
                     var ids = "";

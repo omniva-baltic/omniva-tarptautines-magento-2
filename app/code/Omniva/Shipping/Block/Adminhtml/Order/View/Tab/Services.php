@@ -190,4 +190,13 @@ class Services extends \Magento\Backend\Block\Template implements \Magento\Backe
         $country = $shippingAddress->getCountryId();
         return $country ?? 'LT';
     }
+
+    public function showTrackings($order){
+        if ($order->getTrackingNumbers()) {
+            $trackings = json_decode($order->getTrackingNumbers());
+            return implode(', ', $trackings);
+        } else {
+            return '-';
+        }
+    }
 }

@@ -34,11 +34,12 @@ class OrderCheck
 				try {
 					$response = $this->omnivaCarrier->getOmnivaOrderLabel($order);
 					if (isset($response->tracking_numbers) && $response->tracking_numbers) {
-						$omniva_order->setTrackingNumbers($response->tracking_numbers);
-                		$omniva_order->save();
+						$order->setTrackingNumbers(json_encode($response->tracking_numbers));
+                		$order->save();
 					}
-					$logger->info(json_encode($response));
+					//$logger->info(json_encode($response));
 				} catch (\Throwable $e) {
+					//echo $e->getMessage();
 					$logger->info($e->getMessage());
 				}	
 			}

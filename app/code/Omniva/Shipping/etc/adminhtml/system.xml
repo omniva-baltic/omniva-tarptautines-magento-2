@@ -120,6 +120,7 @@
                     <field id="product_categories_disable" translate="label" type="multiselect" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="0">
                         <label>Disable for specific categories</label>
                         <source_model>Omniva\Shipping\Model\Source\Categories</source_model>
+                        <can_be_empty>1</can_be_empty>
                         <comment>Select categories you want to disable the Omniva method</comment>
                     </field>
                 </group>

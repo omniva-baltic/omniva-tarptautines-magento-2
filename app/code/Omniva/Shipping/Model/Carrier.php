@@ -368,8 +368,34 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
 
     
     private function get_offers($request) {
+        $has_disabled_cats = $this->check_parcels_cats($request);
+        if ($has_disabled_cats){
+            return [];
+        }
         $parcels = $this->get_parcels($request);
         return $this->api->get_offers($this->get_sender(), $this->get_receiver($request), $parcels);
+    }
+
+    private function is_disabled_cat($cat, $disabled_cats = false) {
+        if ($disabled_cats == false) {
+            $disabled_cats = explode(',',$this->getConfigData('omniva_product_group/product_categories_disable'));
+        }
+        if (empty($disabled_cats)) {
+            return false;
+        }
+        if (in_array($cat->getId(), $disabled_cats)) {
+            return true;
+        }
+        if ($cat->getLevel() > 1) {
+            $parent = $cat->getParentCategory();
+            if ($parent) {
+                $data = $this->is_disabled_cat($parent, $disabled_cats);
+                if ($data == true) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private function get_cats_product_data(&$c_weight, &$c_width, &$c_length, &$c_height, $cat) {
@@ -395,11 +421,31 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
             }
         }
     }
+
+    private function check_parcels_cats($request) {
+            $items = $request->getAllItems();
+            foreach ($items as $item) {
+                if ($item->getParentItem()) {
+                    continue;
+                }
+                $product = $item->getProduct();
+                $cats = $product->getCategoryCollection();
+                foreach ($cats as $cat) {
+                    if ($this->is_disabled_cat($cat)) {
+                        return true;
+                    }
+                } 
+            }  
+        return false;
+    }
     
     private function get_parcels($request) {
         $parcels = [];
             $items = $request->getAllItems();
             foreach ($items as $item) {
+                if ($item->getParentItem()) {
+                    continue;
+                }
                 $c_weight = null;
                 $c_width = null;
                 $c_length = null;
@@ -419,7 +465,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
                 $parcel->setLength($product->getData('ts_dimensions_length') ?? ($c_length ? $c_length : $this->getConfigData('omniva_product_group/product_length')) );
                 $parcel->setAmount((int)($item->getQty() ?? $item->getQtyOrdered()));
                 $parcels[] = $parcel->generateParcel();
-            }
+            }  
         return $parcels;
     }
     
@@ -427,6 +473,9 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         $items = [];
         $order_items = $request->getAllItems();
         foreach ($order_items as $id => $data) {
+            if ($data->getParentItem()) {
+                continue;
+            }
             $product = $data->getProduct();
             $item = new Item();
             $item->setItemAmount((int) ($data->getQty() ?? $data->getQtyOrdered()));
@@ -656,52 +705,6 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         return $arr;
     }
 
-    public function callOmniva() {
-        try {
-            $username = $this->getConfigData('account');
-            $password = $this->getConfigData('password');
-            
-            $pickStart = $this->getConfigData('pick_up_time_start')?$this->getConfigData('pick_up_time_start'):'8:00';
-            $pickFinish = $this->getConfigData('pick_up_time_finish')?$this->getConfigData('pick_up_time_finish'):'17:00';
-
-            $name = $this->getConfigData('cod_company');
-            $phone = $this->getConfigData('company_phone');
-            $street = $this->getConfigData('company_address');
-            $postcode = $this->getConfigData('company_postcode');
-            $city = $this->getConfigData('company_city');
-            $country = $this->getConfigData('company_countrycode');
-
-            $address = new Address();
-            $address
-                    ->setCountry($country)
-                    ->setPostcode($postcode)
-                    ->setDeliverypoint($city)
-                    ->setStreet($street);
-
-            // Sender contact data
-            $senderContact = new Contact();
-            $senderContact
-                    ->setAddress($address)
-                    ->setMobile($phone)
-                    ->setPersonName($name);
-
-            $call = new CallCourier();
-            $call->setAuth($username, $password);
-            $call->setSender($senderContact);
-            $call->setEarliestPickupTime($pickStart);
-            $call->setLatestPickupTime($pickFinish);
-            $call_result = $call->callCourier();
-            if ($call_result) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (\Exception $e) {
-            
-        }
-        return false;
-    }
-
     protected function getReferenceNumber($order_number) {
         $order_number = (string) $order_number;
         $kaal = array(7, 3, 1);
@@ -906,11 +909,19 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
     }
 
     public function getOmnivaOrderLabel($order) {
-        $response = $this->api->get_label($order->getShipmentId());
+        return $this->api->get_label($order->getShipmentId());
     }
 
     public function getOmnivaShipmentLabel($shipment_id) {
-        $response = $this->api->get_label($shipment_id);
+        return $this->api->get_label($shipment_id);
+    }
+
+    public function generateManifest($cart_id = null) {
+        if ($cart_id) {
+            return $this->api->generate_manifest($cart_id);
+        } else {
+            return $this->api->generate_latest_manifest();
+        }
     }
     
 

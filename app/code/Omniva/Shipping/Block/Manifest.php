@@ -120,4 +120,13 @@ class Manifest extends \Magento\Framework\View\Element\Template
         return $history;
     }
 
+    public function showTrackings($order){
+        if ($order->getTrackingNumbers()) {
+            $trackings = json_decode($order->getTrackingNumbers());
+            echo implode(', ', $trackings);
+        } else {
+            echo $order->getShipmentId() ? __('Generating ...') : '-';
+        }
+    }
+
 }

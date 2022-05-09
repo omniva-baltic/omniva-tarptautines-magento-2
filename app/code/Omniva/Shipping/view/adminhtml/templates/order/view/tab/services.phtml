@@ -45,8 +45,8 @@
                     <td><?php echo $omniva_order->getShipmentId(); ?></td>
                 </tr>
                 <tr>
-                    <th><?php echo __('Tracking number');?></th>
-                    <td><?php echo $omniva_order->getTrackingNumbers() ? $omniva_order->getTrackingNumbers() : __('Generating ...'); ?></td>
+                    <th><?php echo __('Tracking numbers');?></th>
+                    <td><?php echo $omniva_order->getTrackingNumbers() ? $this->showTrackings($omniva_order) : __('Generating ...'); ?></td>
                 </tr>
                 <?php if ($pickup_point): ?>
                 <tr>
@@ -54,7 +54,7 @@
                     <td><?php echo $pickup_point; ?></td>
                 </tr>
                 <?php endif; ?>
-                <?php if ($omniva_order->getTrackingNumbers() || true) : ?>
+                <?php if ($omniva_order->getTrackingNumbers()) : ?>
                     <tr>
                         <td colspan = "2">
                             <a href = "<?php echo $this->getUrl('omniva/order/printlabel'); ?>?shipment_id=<?php echo $omniva_order->getShipmentId(); ?>" target = "blank" id="omniva-int-btn" class="action-default scalable action-save action-secondary"  data-ui-id="widget-button-0">

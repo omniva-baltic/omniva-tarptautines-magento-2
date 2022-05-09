@@ -13,7 +13,7 @@ use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\App\Filesystem\DirectoryList;
 
 /**
- * Class MassDelete
+ * Class MassLabels
  */
 class PrintMassLabels extends \Magento\Sales\Controller\Adminhtml\Order\AbstractMassAction
 {
@@ -119,7 +119,7 @@ class PrintMassLabels extends \Magento\Sales\Controller\Adminhtml\Order\Abstract
             $this->_redirect($this->_redirect->getRefererUrl());
             return;
         }
-        $this->messageManager->addError(__('There are no shipping labels related to selected orders.'));
+        //$this->messageManager->addError(__('There are no shipping labels related to selected orders.'));
         $this->_redirect($this->_redirect->getRefererUrl());
         return;
     }
