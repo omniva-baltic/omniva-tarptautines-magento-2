@@ -47,6 +47,10 @@ class SaveServicesAjax extends \Magento\Sales\Controller\Adminhtml\Order
             if (isset($params['omniva_services'])){
                 $services = $params['omniva_services'];
             }
+            $cod_amount = $params['omniva_cod_amount'] ?? null;
+            if (!empty($cod_amount)){
+                $services['cod_amount'] = $cod_amount;
+            }
             $resultJson = $this->resultJsonFactory->create();
             $omniva_order = $this->omniva_carrier->getOmnivaOrder($order);
             $omniva_order->setServices(json_encode($services));

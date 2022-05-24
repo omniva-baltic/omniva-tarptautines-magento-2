@@ -71,6 +71,9 @@
             <div class="admin__field admin__field-option">
                 <input name="omniva_services[]" type="checkbox" id="service-<?php echo $service['value']; ?>" class="admin__control-checkbox" value="<?php echo $service['value']; ?>" <?php echo ( in_array($service['value'],$_orderServices)?'checked="checked"':'');?>>
                 <label class="admin__field-label" for="service-<?php echo $service['value']; ?>"><?php echo $service['title']; ?></label>
+                <?php if ($service['value'] == 'cod'): ?>
+                    <input type = "number" name="omniva_cod_amount" id="omniva_cod_amount" class="admin__control-textarea" value = "<?= isset($_orderServices['cod_amount']) ? $_orderServices['cod_amount']:'';?>"/> EUR
+                <?php endif; ?>
             </div>
             <?php endforeach; ?>
             <div class="admin__field">

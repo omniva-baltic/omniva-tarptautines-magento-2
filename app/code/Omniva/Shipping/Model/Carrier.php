@@ -777,9 +777,21 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         $result = new \Magento\Framework\DataObject();
 
         try {
-            $services = [];
+            
             $order = $request->getOrderShipment()->getOrder();
             $omniva_order = $this->getOmnivaOrder($order);
+            $services = [];
+            $cod_amount = round($order->getGrandTotal(), 2);
+            $order_services = json_decode($omniva_order->getServices(), true);
+            if (is_array($order_services)) {
+                foreach ($order_services as $k=>$v) {
+                    if ($k == 'cod_amount') {
+                        $cod_amount = $v;
+                    } else {
+                        $services[] = $v;
+                    }
+                }
+            }
             //check if we have already generated 
             if ($omniva_order->getShipmentId()) {
                 //try to delete old shipment
@@ -789,7 +801,6 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
                 $omniva_order->setTrackingNumbers(null);
                 $omniva_order->save();
             }
-            $cod_amount = 0;
             $service_code = $omniva_order->getServiceCode();
             $sender = $this->get_sender();
             $receiver = $this->get_receiver($request, false);
@@ -809,7 +820,6 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
             $is_cod = $payment_method == 'msp_cashondelivery';
             if ($is_cod) {
                 $services[] = 'cod';
-                $cod_amount = round($order->getGrandTotal(), 2);
             }
                 
             $api_order = new ApiOrder();
